@@ -109,13 +109,13 @@
     <div class="container is-max-desktop">
       <div class="columns is-centered">
         <div class="column is-four-fifths has-text-justified">
-          <h2 class="subtitle is-4">
-            An often overlooked factor of robot manipulation performance is the embodiment of the robot itself.
-            We study <strong>motion-conditioned robot co-design</strong>: given a target end-effector motion and a
-            user-defined reward function, generate the best complete robot for the task.
-          </h2>
           <p style="margin-top: 1.25rem; font-size: 1.1rem;">
-            Our solution is <strong>Transformer Transformer</strong>, a diffusion transformer trained on
+            Not all robots are created equal. What motions a robot can effectively perform critically depends
+            on the design of its physical embodiment. What if we could input a manipulation demonstration dataset,
+            and quickly get out a <i>complete</i> robot design optimized for that dataset?
+          </p>
+          <p style="margin-top: 1.25rem; font-size: 1.1rem;">
+            We propose <strong>Transformer Transformer</strong>, a diffusion transformer trained on
             <strong>RoboTokens</strong>, a unified tokenization of robot
             embodiments, states, and actions. The same architecture spans embodiment spaces (wheeled bimanual,
             quadrupeds, humanoids) and use cases (embodiment generation, cross-embodiment control). Rather than
@@ -208,7 +208,7 @@
               desired end-effector motion (e.g., from a UMI<sup class="cite"><a href="#ref-3">3</a></sup> human
               demonstration), our model <strong>generates</strong> an optimized embodiment, and the same model
               <strong>validates</strong> the design by directly controlling it. The same network plays three roles —
-              generator, dynamics critic, and cross-embodiment controller — by training jointly on one unified
+              generator, critic, and cross-embodiment controller — by training jointly on one unified
               tokenization of robots.
             </p>
           </div>
@@ -265,22 +265,42 @@
             </p>
 
 
-            <p>
-              <strong>Complete.</strong> A RoboToken sequence captures everything about a rigid articulated robot: 5
-              embodiment token types (links, fixed joints, rotating/sliding joints, ball joints, motors) plus state and
-              action tokens.
-            </p>
-            <p>
-              <strong>Flexible.</strong> Tokens reference each other by ID — a joint token knows the two link tokens it
-              connects — so the same format handles a 6-DoF arm or a 35-DoF biped.
-            </p>
-            <p>
-              <strong>Consistent.</strong> The tokenizer canonicalizes redundant spatial offsets and stores inertial /
-              transform data in a single frame, reducing the variance the model has to learn through.
-            </p>
+            <p>RoboTokens has the following key design goals:</p>
+            <ul style="list-style: none; padding-left: 0.2rem; margin-top: 0;">
+              <li style="margin-bottom: 0.75rem;">
+                <strong>Complete.</strong> A RoboToken sequence captures everything about a rigid articulated robot: 5
+                embodiment token types (links, fixed joints, rotating/sliding joints, ball joints, motors) plus state
+                and action tokens.
+              </li>
+              <li style="margin-bottom: 0.75rem;">
+                <strong>Flexible.</strong> Tokens reference each other by ID — a joint token knows the two link tokens
+                it connects — so the same format handles a 6-DoF arm or a 35-DoF biped.
+              </li>
+              <li style="margin-bottom: 0.75rem;">
+                <strong>Consistent.</strong> The tokenizer canonicalizes redundant spatial offsets and stores inertial /
+                transform data in a single frame, reducing the variance the model has to learn through.
+              </li>
+              <li style="margin-bottom: 0.75rem;">
+                <strong>Extensible.</strong> New token types slot in without changing the architecture &mdash; we add
+                target end-effector pose tokens for trajectory tracking by pointing them at the relevant end-effector
+                and timestep IDs, no retokenization of the rest of the robot required.
+              </li>
+              <li>
+                <strong>Optimizable.</strong> Unlike autoregressive text formats like MJCF, diffusing continuous-valued
+                RoboTokens gives both <em>global controllability</em> (later tokens influence earlier ones across
+                denoising steps) and <em>differentiability</em> &mdash; the two ingredients needed for gradient-based
+                reward optimization at inference time.
+              </li>
+            </ul>
           </div>
 
-
+          <div class="content has-text-justified" style="margin-top: 2rem;">
+            <p>
+              We tokenized 11 robots from the MuJoCo Menagerie<sup class="cite"><a href="#ref-10">10</a></sup>, spanning
+              two orders of magnitude in mass (0.65&nbsp;kg dexterous hand to 67.5&nbsp;kg quadruped) and from 6 to 35
+              active joints. Each became a sequence of 28–101 RoboTokens — small enough to diffuse end-to-end.
+            </p>
+          </div>
           <figure style="margin-top: 2.5rem;">
             <img src="./static/images/robotokens-compactness.png" alt="RoboTokens compactness vs MJCF text tokens." />
             <figcaption class="figure-caption">
@@ -290,13 +310,7 @@
             </figcaption>
           </figure>
 
-          <div class="content has-text-justified" style="margin-top: 2rem;">
-            <p>
-              We tokenized 11 robots from the MuJoCo Menagerie<sup class="cite"><a href="#ref-10">10</a></sup>, spanning
-              two orders of magnitude in mass (0.65&nbsp;kg dexterous hand to 67.5&nbsp;kg quadruped) and from 6 to 35
-              active joints. Each became a sequence of 28–101 RoboTokens — small enough to diffuse end-to-end.
-            </p>
-          </div>
+
 
         </div>
       </div>
@@ -526,8 +540,18 @@
             </p>
           </div>
 
+          <h3 class="title is-4" style="margin-top: 2.5rem;">Test-time compute scales the results</h3>
+          <div class="content has-text-justified" style="font-size: 1.05rem;">
+            <p>
+              Like large language models that get better with longer thinking<sup class="cite"><a
+                  href="#ref-19">19</a></sup>, Transformer Transformer gets better designs when given more inference
+              seeds to sample over. Performance does eventually plateau after about a minute — unlike the seemingly
+              endless gains LLMs get from longer reasoning. We discuss this in the limitations.
+            </p>
+          </div>
+
           <figure>
-            <img src="./static/images/hardware-opt.jpg" alt="Test-time scaling results across three design spaces." />
+            <img src="./static/images/hardware-opt.png" alt="Test-time scaling results across three design spaces." />
             <figcaption class="figure-caption">
               <strong>Higher reward, orders of magnitude faster.</strong> Across three design spaces and several
               reward functions, our Zeroth Order and Dynamics Self-Guidance variants both produce higher-reward designs
@@ -542,40 +566,6 @@
             (2) Non-autoregressive diffusion evaluates an entire rollout in parallel rather than one timestep at a time.
             Typical learned dynamics models predict one step at a time; we predict the whole episode at once.
           </div>
-
-          <h3 class="title is-4" style="margin-top: 2.5rem;">Test-time compute scales the results</h3>
-          <div class="content has-text-justified" style="font-size: 1.05rem;">
-            <p>
-              Like large language models that get better with longer thinking<sup class="cite"><a
-                  href="#ref-19">19</a></sup>, Transformer Transformer gets better designs when given more inference
-              seeds to sample over. Performance does eventually plateau after about a minute — unlike the seemingly
-              endless gains LLMs get from longer reasoning. We discuss this in the limitations.
-            </p>
-          </div>
-
-          <h3 class="title is-4" style="margin-top: 2.5rem;">Self-validation: the generator <em>is</em> the
-            controller</h3>
-          <figure>
-            <img src="./static/images/quadruped-control.jpg"
-              alt="Cross-embodiment controller correlates with RL oracle." />
-            <figcaption class="figure-caption">
-              <strong>The model can grade its own designs.</strong> After generating an optimized quadruped, the same
-              Transformer Transformer can drive it to track the target motion. Its self-validated rewards correlate
-              strongly with the oracle RL expert's rewards (Pearson <em>r</em> = 0.53), demonstrating that one model
-              can act as both generator and controller faithfully.
-            </figcaption>
-          </figure>
-
-          <figure style="margin-top: 2rem;">
-            <img src="./static/images/reward-prediction.jpg" alt="Predicted reward accuracy across design spaces." />
-            <figcaption class="figure-caption">
-              <strong>Reward prediction is harder for legged robots.</strong> Predicted rewards correlate with realized
-              rewards more strongly for fixed-base (ViperX) and bimanual design spaces than for quadrupeds — because
-              legged-robot dynamics involve discontinuous contacts and termination risk from falling over, which are
-              harder to predict than smooth manipulator dynamics.
-            </figcaption>
-          </figure>
-
         </div>
       </div>
     </div>
@@ -622,17 +612,6 @@
           </div>
 
 
-
-          <!-- <figure style="margin-top: 2.5rem;">
-            <img src="./static/images/real_world_side_by_side.png"
-              alt="Optimized ALOHA design discovered by the model." />
-            <figcaption class="figure-caption">
-              <strong>The optimized ALOHA design.</strong> Longer links extend reach across the cloth; the inverted
-              mount enables an energy-efficient underarm swing rather than an overhead fling. Both were required to
-              track the full flinging motion within ALOHA's motor envelope.
-            </figcaption>
-          </figure> -->
-
           <figure style="margin-top: 2rem;">
             <img src="./static/images/real_world_plot.png" alt="Joint speed comparison." />
             <figcaption class="figure-caption">
@@ -642,11 +621,6 @@
             </figcaption>
           </figure>
 
-          <div class="callout" style="margin-top: 2rem; font-size: 1.1rem;">
-            On hardware: <span class="bignum">73%</span> lower tracking position error
-            (13.0&nbsp;cm&nbsp;&rarr;&nbsp;3.5&nbsp;cm) and <span class="bignum">30%</span> lower max joint speed
-            (2.57&nbsp;&rarr;&nbsp;1.82&nbsp;rad/s). The simulated gains transferred.
-          </div>
 
         </div>
       </div>
@@ -690,36 +664,6 @@
       </div>
     </div>
   </section>
-
-
-  <!-- =========================== SUMMARY =========================== -->
-  <section class="section is-medium">
-    <div class="container is-max-desktop">
-      <div class="columns is-centered">
-        <div class="column is-four-fifths has-text-justified">
-
-          <h2 class="title is-2 has-text-centered is-size-4-mobile">Summary</h2>
-
-          <div class="content" style="font-size: 1.1rem;">
-            <p>
-              Transformer Transformer is one diffusion transformer that wears many hats — robot generator, dynamics
-              critic, and cross-embodiment controller — all by changing which RoboTokens are masked. A generic
-              dynamics-modeling objective lets it zero-shot optimize for unseen rewards via Dynamics Self-Guidance, and
-              its non-autoregressive diffusion enables parallelization over both samples and time, beating an
-              evolutionary baseline by orders of magnitude in wall-clock time. We fabricated an optimized ALOHA design
-              that cut real-world tracking error by 73% on cloth flinging.
-            </p>
-            <p>
-              The framework puts the manipulation task front and center. Instead of starting with a robot and asking
-              what tasks it can do, it flips the question: start with the task, ask what robot is best for it.
-            </p>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  </section>
-
 
 
   <!-- =========================== REFERENCES =========================== -->
