@@ -108,24 +108,32 @@
   <section class="section is-medium">
     <div class="container is-max-desktop">
       <div class="columns is-centered">
-        <div class="column is-four-fifths has-text-justified">
-          <p style="margin-top: 1.25rem; font-size: 1.1rem;">
-            Not all robots are created equal. What motions a robot can effectively perform critically depends
-            on the design of its physical embodiment. What if we could input a manipulation demonstration dataset,
-            and quickly get out a <i>complete</i> robot design optimized for that dataset?
-          </p>
-          <p style="margin-top: 1.25rem; font-size: 1.1rem;">
-            We propose <strong>Transformer Transformer</strong>, a diffusion transformer trained on
-            <strong>RoboTokens</strong>, a unified tokenization of robot
-            embodiments, states, and actions. The same architecture spans embodiment spaces (wheeled bimanual,
-            quadrupeds, humanoids) and use cases (embodiment generation, cross-embodiment control). Rather than
-            overfitting to one reward function, it is a dynamics model whose reward-agnostic predictions are converted
-            into reward-specific value predictions at inference time, then used to steer embodiment diffusion through a
-            procedure we call <strong>Dynamics Self-Guidance</strong>. Experiments across three design spaces show
-            zero-shot optimization of unseen rewards and trajectories, improving performance and runtime over an
-            evolutionary baseline. We fabricated an optimized ALOHA<sup class="cite"><a href="#ref-2">2</a></sup>
-            design that reduced tracking error by over <span class="bignum">73%</span> compared to the original.
-          </p>
+        <div class="column is-four-fifths">
+          <h2 class="title is-2 has-text-centered is-size-4-mobile">Not all robots are created equal</h2>
+          <video playsinline autoplay muted loop
+            style="width: 100%; border-radius: 8px; display: block; background: #fff;">
+            <source src="./static/videos/real-world.mp4" type="video/mp4">
+          </video>
+          <div class="content has-text-justified" style="margin-top: 1.5rem;">
+            <p style="margin-top: 1.25rem; font-size: 1.1rem;">
+              Not all robots are created equal &mdash; but what if you could design one for a specific task?
+              We propose <strong>Transformer Transformer</strong>, a unified model that does exactly this: hand it
+              a manipulation demonstration, and it generates a complete robot &mdash; every link, joint, motor, and
+              inertial property &mdash; optimized for that motion. We fabricated one such design for cloth
+              flinging on an ALOHA<sup class="cite"><a href="#ref-2">2</a></sup> bimanual platform; it reduced
+              tracking error by <span class="bignum">73%</span> and max joint speed by 30% versus the original.
+            </p>
+            <p style="margin-top: 1.25rem; font-size: 1.1rem;">
+              Behind that result is a diffusion transformer trained on <strong>RoboTokens</strong>, a unified
+              tokenization of robot embodiments, states, and actions. The same architecture spans embodiment spaces
+              (wheeled bimanual, quadrupeds, humanoids) and use cases (embodiment generation, cross-embodiment
+              control). Rather than overfitting to one reward function, it is a dynamics model whose reward-agnostic
+              predictions are converted into reward-specific value predictions at inference time, then used to steer
+              embodiment diffusion through a procedure we call <strong>Dynamics Self-Guidance</strong>. Experiments
+              across three design spaces show zero-shot optimization of unseen rewards and trajectories, improving
+              performance and runtime over an evolutionary baseline.
+            </p>
+          </div>
         </div>
       </div>
     </div>
