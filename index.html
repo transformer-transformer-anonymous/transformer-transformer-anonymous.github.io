@@ -28,9 +28,9 @@
   <section class="hero is-link is-fullheight" style="overflow: hidden; position: relative; background: #111;">
     <!-- Hero background video (placeholder until ./static/videos/teaser.mp4 exists) -->
     <div class="hero-video"
-      style="position: absolute; inset: 0; height: 100%; width: 100%; overflow: hidden; opacity: 0.55;">
+      style="position: absolute; inset: 0; height: 100%; width: 100%; overflow: hidden; opacity: 1;">
       <video playsinline autoplay muted loop style="width: 100%; height: 100%; object-fit: cover;">
-        <source src="./static/videos/teaser.mp4" type="video/mp4">
+        <source src="./static/videos/looping_robotokens.mp4" type="video/mp4">
       </video>
     </div>
     <div class="overlay"></div>
@@ -400,7 +400,7 @@
 
           <p class="has-text-centered" style="color: #888; letter-spacing: 0.2em; font-size: 0.85rem;">PART 3</p>
           <h2 class="title is-2 has-text-centered is-size-4-mobile">
-            Dynamics Self-Guidance &mdash; Zero-shotting Rewards
+            Dynamics Self-Guidance <br> Zero-shotting Rewards
           </h2>
 
           <div class="content has-text-justified" style="font-size: 1.1rem;">
@@ -412,7 +412,7 @@
               Here is the trick. The same model predicts both the embodiment <em>and</em> its dynamics, so we can feed
               those predictions into the user's reward function and get a <em>predicted reward</em>. With predicted
               rewards in hand, we can run the model many times in parallel, predict the reward for each candidate, and
-              return the best one. That is just best-of-N sampling, but at GPU speed.
+              return the best one. That is best-of-N sampling, but at GPU speed.
             </p>
             <p>
               We can do better. Because the predicted reward is a differentiable function of the embodiment tokens, we
@@ -430,19 +430,15 @@
             <em>its own</em> dynamics predictions to steer itself.
           </div>
 
-          <div class="placeholder" style="margin-top: 1.5rem;">
-            <div>
-              <strong>Visual TODO #4 — <code>./static/videos/landscape-guidance.mp4</code></strong><br>
-              2D slice of a reward landscape; diffusion samples shown as dots; with guidance, dots climb toward peaks
-              over the diffusion steps. Already implicit in the 16-min video — this would be the skim-friendly,
-              still-screenshottable version. See README.
-            </div>
-          </div>
-          <p class="figure-caption">
-            <strong>Climbing the landscape.</strong> Best-of-N finds good designs by luck. Dynamics Self-Guidance uses
-            the model's own reward gradient to climb the optimization landscape during diffusion — same compute, better
-            samples.
-          </p>
+          <figure style="margin-top: 2rem;">
+            <img src="./static/images/dynamics_self_guidance.jpg" alt="Climbing the landscape." />
+            <figcaption class="figure-caption">
+              <strong>One gradient, the whole episode.</strong> Transformer Transformer predicts state and action tokens
+              across the episode's horizon in parallel; the reward gradient then flows back through all
+              of it to the embodiment tokens. Hardware gets optimized over long-horizon dynamics, not one timestep at a
+              time.
+            </figcaption>
+          </figure>
 
           <h3 class="title is-4" style="margin-top: 2.5rem;">Reward in, robot out</h3>
           <div class="content has-text-justified" style="font-size: 1.05rem;">
@@ -488,6 +484,17 @@
               then served as the cross-embodiment controller to validate each generated design.
             </p>
           </div>
+
+          <div>
+            <video playsinline autoplay muted loop style="width: 100%; height: 100%; object-fit: cover;">
+              <source src="./static/videos/multi-traj.mp4" type="video/mp4">
+            </video>
+          </div>
+          <p class="figure-caption">
+            <strong>One robot, a whole task.</strong> Composed across the 26 held-out UMI dish-washing trajectories,
+            the model returns a single embodiment optimized for the entire distribution — and the same network then
+            drives it through each motion.
+          </p>
 
         </div>
       </div>
@@ -584,6 +591,15 @@
           <h2 class="title is-2 has-text-centered is-size-4-mobile">
             Real-World: Cloth Flinging on ALOHA
           </h2>
+          <div>
+            <video playsinline autoplay muted loop style="width: 100%; height: 100%; object-fit: cover;">
+              <source src="./static/videos/real-world.mp4" type="video/mp4">
+            </video>
+          </div>
+          <p class="figure-caption">
+            <strong>Original ALOHA vs Transformer Transformer-optimized ALOHA.</strong> Same task, same target
+            trajectory, two robots. The optimized design unfolds the cloth where the original cannot.
+          </p>
 
           <div class="content has-text-justified" style="font-size: 1.1rem;">
             <p>
@@ -605,31 +621,20 @@
             </ul>
           </div>
 
-          <div class="placeholder" style="margin-top: 1.5rem;">
-            <div>
-              <strong>Visual TODO #5 — <code>./static/videos/aloha-before-after.mp4</code></strong><br>
-              <em>The hero clip of the campaign.</em> Side-by-side, original ALOHA on the left struggling to track,
-              optimized ALOHA on the right succeeding. ~10–12 sec, with on-screen labels for <span
-                class="bignum">&minus;73%</span> tracking error and <span class="bignum">&minus;30%</span> max joint
-              speed. Also reused as the Tweet 1 GIF and the hero video. See README.
-            </div>
-          </div>
-          <p class="figure-caption">
-            <strong>Original ALOHA vs Transformer Transformer-optimized ALOHA.</strong> Same task, same target
-            trajectory, two robots. The optimized design unfolds the cloth where the original cannot.
-          </p>
 
-          <figure style="margin-top: 2.5rem;">
-            <img src="./static/images/real-world.jpg" alt="Optimized ALOHA design discovered by the model." />
+
+          <!-- <figure style="margin-top: 2.5rem;">
+            <img src="./static/images/real_world_side_by_side.png"
+              alt="Optimized ALOHA design discovered by the model." />
             <figcaption class="figure-caption">
               <strong>The optimized ALOHA design.</strong> Longer links extend reach across the cloth; the inverted
               mount enables an energy-efficient underarm swing rather than an overhead fling. Both were required to
               track the full flinging motion within ALOHA's motor envelope.
             </figcaption>
-          </figure>
+          </figure> -->
 
           <figure style="margin-top: 2rem;">
-            <img src="./static/images/real-world-velocity.jpg" alt="Joint speed comparison." />
+            <img src="./static/images/real_world_plot.png" alt="Joint speed comparison." />
             <figcaption class="figure-caption">
               <strong>Smoother joint trajectories.</strong> Joint speed over the flinging motion. The optimized design
               has fewer peaks and a lower maximum than the original — the kinematic and dynamic gains transfer to
@@ -752,7 +757,7 @@
             </li>
             <li id="ref-6">
               Gupta, A., Fan, L., Ganguli, S., &amp; Fei-Fei, L.
-              <em>Metamorph: Learning universal controllers with transformers.</em>
+              <em>MetaMorph: Learning universal controllers with transformers.</em>
               arXiv:2203.11931, 2022.
             </li>
             <li id="ref-7">
@@ -785,7 +790,7 @@
             </li>
             <li id="ref-12">
               Xu, X., Ha, H., &amp; Song, S.
-              <em>Dynamics-Guided Diffusion Model for Robot Manipulator Design.</em>
+              <em>Dynamics-Guided Diffusion Model for Sensor-less Robot Manipulator Design.</em>
               arXiv:2402.15038, 2024.
             </li>
             <li id="ref-13">
@@ -828,7 +833,7 @@
             <li id="ref-20">
               Ha, H., &amp; Song, S.
               <em>FlingBot: The unreasonable effectiveness of dynamic manipulation for cloth unfolding.</em>
-              CoRL, 2022.
+              CoRL, 2021.
             </li>
           </ol>
 
